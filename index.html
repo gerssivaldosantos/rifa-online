@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 Sistema de Sorteio e Rifas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Righteous&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+    <!-- Particles Background -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-ticket"></i>
+            <span id="raffleTitle">Meu Sorteio</span>
+            <button id="editRaffleBtn" class="btn-edit-raffle" title="Editar informações da rifa">
+                <i class="fas fa-edit"></i>
+            </button>
+        </div>
+        <div class="header-info" id="headerInfo">
+            <div class="info-item" id="campaignInfo" style="display: none;">
+                <i class="fas fa-info-circle"></i>
+                <span id="campaignText"></span>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat">
+                <i class="fas fa-users"></i>
+                <span id="totalParticipants">0</span> Participantes
+            </div>
+            <div class="stat">
+                <i class="fas fa-ticket-alt"></i>
+                <span id="totalTickets">0</span> Bilhetes
+            </div>
+        </div>
+    </header>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="fas fa-info-circle"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Edit Raffle Modal -->
+    <div id="editRaffleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-cog"></i>
+                    Configurar Rifa/Sorteio
+                </h2>
+                <button class="btn-close-modal" id="closeModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editRaffleForm" class="modal-form">
+                <div class="form-group">
+                    <label for="raffleTitleInput">
+                        <i class="fas fa-heading"></i>
+                        Nome da Rifa/Sorteio
+                    </label>
+                    <input type="text" id="raffleTitleInput" placeholder="Ex: Rifa Beneficente, Sorteio de Natal"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label for="campaignSubtitleInput">
+                        <i class="fas fa-align-left"></i>
+                        Descrição (opcional)
+                    </label>
+                    <input type="text" id="campaignSubtitleInput" placeholder="Ex: Ajude uma família em necessidade">
+                </div>
+                <div class="form-group">
+                    <label for="campaignDetailInput">
+                        <i class="fas fa-info-circle"></i>
+                        Informação Extra (opcional)
+                    </label>
+                    <input type="text" id="campaignDetailInput" placeholder="Ex: Prêmio: TV 50 polegadas">
+                </div>
+                <button type="submit" class="btn btn-add btn-full">
+                    <i class="fas fa-save"></i>
+                    Salvar Configurações
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Add Participant Section -->
+        <section class="add-section">
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fas fa-user-plus"></i>
+                    Adicionar Participante
+                </h2>
+                <form id="participantForm" class="participant-form">
+                    <div class="form-group">
+                        <label for="participantName">
+                            <i class="fas fa-user"></i>
+                            Nome do Participante
+                        </label>
+                        <input type="text" id="participantName" placeholder="Digite o nome completo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ticketCount">
+                            <i class="fas fa-ticket-alt"></i>
+                            Quantidade de Bilhetes
+                        </label>
+                        <input type="number" id="ticketCount" min="1" max="1000" value="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-add">
+                        <i class="fas fa-plus-circle"></i>
+                        Adicionar Participante
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Participants List -->
+        <section class="participants-section">
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-list"></i>
+                        Participantes do Sorteio
+                    </h2>
+                    <button id="clearAllBtn" class="btn btn-danger btn-small">
+                        <i class="fas fa-trash"></i>
+                        Limpar Tudo
+                    </button>
+                </div>
+                <div id="participantsList" class="participants-list">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>Nenhum participante adicionado ainda</p>
+                        <p class="empty-subtitle">Adicione participantes para começar o sorteio</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Draw Button -->
+        <section class="draw-section">
+            <button id="drawBtn" class="btn btn-draw" disabled>
+                <i class="fas fa-random"></i>
+                <span>Sortear Vencedor</span>
+                <div class="btn-glow"></div>
+            </button>
+        </section>
+
+        <!-- Winner Display -->
+        <div id="winnerDisplay" class="winner-display">
+            <div class="winner-container">
+                <div class="winner-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h1 class="winner-title">🎉 VENCEDOR! 🎉</h1>
+                <div class="winner-name-container">
+                    <div class="winner-name" id="winnerName"></div>
+                </div>
+                <div class="winner-tickets" id="winnerTickets"></div>
+                <button id="closeWinnerBtn" class="btn btn-close">
+                    <i class="fas fa-times"></i>
+                    Fechar
+                </button>
+                <button id="drawAgainBtn" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i>
+                    Sortear Novamente
+                </button>
+            </div>
+        </div>
+
+        <!-- Slot Machine Animation -->
+        <div id="slotMachine" class="slot-machine">
+            <div class="slot-machine-container">
+                <h2 class="slot-title">
+                    <i class="fas fa-dice"></i>
+                    SORTEANDO...
+                </h2>
+                <div class="slot-wrapper">
+                    <div class="slot-reel" id="slotReel"></div>
+                </div>
+                <div class="slot-indicator"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script>
+        // Data
+        let participants = [];
+        let raffleConfig = {
+            title: 'Meu Sorteio',
+            campaignTitle: '',
+            campaignSubtitle: 'Altere essas informações clicando no botão a esquerda !',
+            campaignDetail: '',
+            icon: 'fa-star'
+        };
+
+        // DOM Elements
+        const participantForm = document.getElementById('participantForm');
+        const participantNameInput = document.getElementById('participantName');
+        const ticketCountInput = document.getElementById('ticketCount');
+        const participantsList = document.getElementById('participantsList');
+        const drawBtn = document.getElementById('drawBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const winnerDisplay = document.getElementById('winnerDisplay');
+        const slotMachine = document.getElementById('slotMachine');
+        const slotReel = document.getElementById('slotReel');
+        const totalParticipantsSpan = document.getElementById('totalParticipants');
+        const totalTicketsSpan = document.getElementById('totalTickets');
+        const closeWinnerBtn = document.getElementById('closeWinnerBtn');
+        const drawAgainBtn = document.getElementById('drawAgainBtn');
+
+        // Raffle config elements
+        const editRaffleBtn = document.getElementById('editRaffleBtn');
+        const editRaffleModal = document.getElementById('editRaffleModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const editRaffleForm = document.getElementById('editRaffleForm');
+        const raffleTitleInput = document.getElementById('raffleTitleInput');
+        const campaignSubtitleInput = document.getElementById('campaignSubtitleInput');
+        const campaignDetailInput = document.getElementById('campaignDetailInput');
+
+        // Load saved data from localStorage
+        function loadData() {
+            const savedParticipants = localStorage.getItem('participants');
+            const savedConfig = localStorage.getItem('raffleConfig');
+
+            if (savedParticipants) {
+                participants = JSON.parse(savedParticipants);
+                renderParticipants();
+                updateStats();
+            }
+
+            if (savedConfig) {
+                raffleConfig = JSON.parse(savedConfig);
+                updateRaffleDisplay();
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('participants', JSON.stringify(participants));
+            localStorage.setItem('raffleConfig', JSON.stringify(raffleConfig));
+        }
+
+        // Show toast notification
+        function showToast(message, duration = 4000) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+
+            toastMessage.textContent = message;
+            toast.classList.add('active');
+
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, duration);
+        }
+
+        // Click on toast to dismiss
+        document.getElementById('toast').addEventListener('click', function () {
+            this.classList.remove('active');
+        });
+
+        // Update raffle display
+        function updateRaffleDisplay() {
+            document.getElementById('raffleTitle').textContent = raffleConfig.title;
+
+            // Show campaign info if exists
+            const campaignInfoElement = document.getElementById('campaignInfo');
+            const campaignTextElement = document.getElementById('campaignText');
+
+            if (raffleConfig.campaignSubtitle || raffleConfig.campaignDetail) {
+                let infoText = '';
+                if (raffleConfig.campaignSubtitle) infoText = raffleConfig.campaignSubtitle;
+                if (raffleConfig.campaignDetail) {
+                    infoText += infoText ? ' • ' + raffleConfig.campaignDetail : raffleConfig.campaignDetail;
+                }
+                campaignTextElement.textContent = infoText;
+                campaignInfoElement.style.display = 'flex';
+            } else {
+                campaignInfoElement.style.display = 'none';
+            }
+
+            // Update document title
+            document.title = `🎲 ${raffleConfig.title}`;
+        }
+
+        // Open edit modal
+        editRaffleBtn.addEventListener('click', () => {
+            raffleTitleInput.value = raffleConfig.title;
+            campaignSubtitleInput.value = raffleConfig.campaignSubtitle;
+            campaignDetailInput.value = raffleConfig.campaignDetail;
+            editRaffleModal.classList.add('active');
+
+            // Hide welcome toast if visible and mark as clicked
+            const toast = document.getElementById('toast');
+            toast.classList.remove('active');
+            localStorage.setItem('hasConfigured', 'true');
+        });
+
+        // Close modal
+        closeModalBtn.addEventListener('click', () => {
+            editRaffleModal.classList.remove('active');
+        });
+
+        // Close modal when clicking outside
+        editRaffleModal.addEventListener('click', (e) => {
+            if (e.target === editRaffleModal) {
+                editRaffleModal.classList.remove('active');
+            }
+        });
+
+        // Save raffle config
+        editRaffleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            raffleConfig.title = raffleTitleInput.value.trim() || 'Meu Sorteio';
+            raffleConfig.campaignSubtitle = campaignSubtitleInput.value.trim();
+            raffleConfig.campaignDetail = campaignDetailInput.value.trim();
+
+            updateRaffleDisplay();
+            saveData();
+            editRaffleModal.classList.remove('active');
+
+            // Show success toast
+            showToast('✅ Configurações salvas com sucesso!');
+
+            // Success animation
+            const logo = document.querySelector('.logo');
+            logo.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                logo.style.transform = 'scale(1)';
+            }, 200);
+        });
+
+        // Create particles
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particles.appendChild(particle);
+            }
+        }
+
+        // Update stats
+        function updateStats() {
+            const totalTickets = participants.reduce((sum, p) => sum + p.tickets, 0);
+            totalParticipantsSpan.textContent = participants.length;
+            totalTicketsSpan.textContent = totalTickets;
+
+            drawBtn.disabled = participants.length === 0;
+        }
+
+        // Render participants list
+        function renderParticipants() {
+            if (participants.length === 0) {
+                participantsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>Nenhum participante adicionado ainda</p>
+                        <p class="empty-subtitle">Adicione participantes para começar o sorteio</p>
+                    </div>
+                `;
+                return;
+            }
+
+            participantsList.innerHTML = participants.map((participant, index) => `
+                <div class="participant-card" style="animation-delay: ${index * 0.05}s">
+                    <div class="participant-avatar">
+                        <i class="fas fa-user"></i>
+                </div>
+                    <div class="participant-info">
+                        <div class="participant-name">${participant.name}</div>
+                        <div class="participant-tickets">
+                            <i class="fas fa-ticket-alt"></i>
+                            ${participant.tickets} ${participant.tickets === 1 ? 'bilhete' : 'bilhetes'}
+                </div>
+                    </div>
+                    <button class="btn-delete" onclick="removeParticipant(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Add participant
+        participantForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const name = participantNameInput.value.trim();
+            const tickets = parseInt(ticketCountInput.value);
+
+            if (name && tickets > 0) {
+                participants.push({ name, tickets });
+
+                // Animation
+                participantNameInput.value = '';
+                ticketCountInput.value = 1;
+
+                renderParticipants();
+                updateStats();
+                saveData();
+
+                // Success animation
+                const form = participantForm;
+                form.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    form.style.transform = 'scale(1)';
+                }, 200);
+            }
+        });
+
+        // Remove participant
+        function removeParticipant(index) {
+            participants.splice(index, 1);
+            renderParticipants();
+            updateStats();
+            saveData();
+        }
+
+        // Clear all
+        clearAllBtn.addEventListener('click', () => {
+            if (confirm('Tem certeza que deseja remover todos os participantes?')) {
+                participants = [];
+                renderParticipants();
+                updateStats();
+                saveData();
+            }
+        });
+
+        // Slot machine animation
+        function showSlotMachine() {
+            // Reset slot reel position
+            slotReel.style.transition = 'none';
+            slotReel.style.transform = 'translateY(0)';
+            if (typeof gsap !== 'undefined') {
+                gsap.set(slotReel, { y: 0 });
+            }
+
+            slotMachine.classList.add('active');
+
+            // Create slot items
+            const allNames = [];
+            participants.forEach(p => {
+                for (let i = 0; i < p.tickets; i++) {
+                    allNames.push(p.name);
+                }
+            });
+
+            if (allNames.length === 0) {
+                return allNames;
+            }
+
+            // Shuffle and repeat names for smooth animation
+            const shuffled = [...allNames].sort(() => Math.random() - 0.5);
+            const repeated = [...shuffled, ...shuffled, ...shuffled, ...shuffled];
+
+            slotReel.innerHTML = repeated.map(name => `
+                <div class="slot-item">${name}</div>
+            `).join('');
+
+            return allNames;
+        }
+
+        // Draw winner
+        drawBtn.addEventListener('click', async () => {
+            // Check if there are participants
+            if (participants.length === 0) {
+                alert('Adicione participantes primeiro!');
+                return;
+            }
+
+            drawBtn.disabled = true;
+
+            try {
+                // Show slot machine
+                const allTickets = showSlotMachine();
+
+                // Random winner
+                const winnerIndex = Math.floor(Math.random() * allTickets.length);
+                const winnerName = allTickets[winnerIndex];
+                const winner = participants.find(p => p.name === winnerName);
+
+                // Animate slot machine
+                await animateSlotMachine();
+
+                // Hide slot machine
+                slotMachine.classList.remove('active');
+
+                // Show winner with delay
+                setTimeout(() => {
+                    showWinner(winner);
+                }, 500);
+            } catch (error) {
+                console.error('Error during draw:', error);
+                alert('Erro durante o sorteio. Tente novamente!');
+                slotMachine.classList.remove('active');
+            } finally {
+                drawBtn.disabled = false;
+            }
+        });
+
+        // Animate slot machine
+        function animateSlotMachine() {
+            return new Promise((resolve) => {
+                const duration = 5000; // 5 seconds
+                const itemHeight = 100;
+                const totalItems = slotReel.children.length;
+
+                if (totalItems === 0) {
+                    resolve();
+                    return;
+                }
+
+                const maxScroll = (totalItems - 1) * itemHeight;
+
+                // Check if GSAP is available
+                if (typeof gsap !== 'undefined') {
+                    // Slow down gradually with GSAP
+                    gsap.to(slotReel, {
+                        y: -maxScroll + itemHeight * 10,
+                        duration: duration / 1000,
+                        ease: "power4.out",
+                        onComplete: resolve
+                    });
+                } else {
+                    // Fallback CSS animation
+                    slotReel.style.transition = `transform ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+                    slotReel.style.transform = `translateY(${-maxScroll + itemHeight * 10}px)`;
+                    setTimeout(resolve, duration);
+                }
+
+                // Vibration effect
+                if (navigator.vibrate) {
+                    setTimeout(() => {
+                        try {
+                            navigator.vibrate(200);
+                        } catch (e) {
+                            console.log('Vibration not supported');
+                        }
+                    }, duration - 1000);
+                }
+            });
+        }
+
+        // Show winner
+        function showWinner(winner) {
+            document.getElementById('winnerName').textContent = winner.name;
+            document.getElementById('winnerTickets').innerHTML = `
+                <i class="fas fa-ticket-alt"></i>
+                ${winner.tickets} ${winner.tickets === 1 ? 'bilhete' : 'bilhetes'}
+            `;
+
+            winnerDisplay.classList.add('active');
+
+            // Confetti!
+            const duration = 5000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 7,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#FF6B9D', '#FFB6C1', '#E8B4B8', '#D4AF37', '#FF1493']
+                });
+                confetti({
+                    particleCount: 7,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#FF6B9D', '#FFB6C1', '#E8B4B8', '#D4AF37', '#FF1493']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+
+            // Extra burst
+            setTimeout(() => {
+                confetti({
+                    particleCount: 150,
+                    spread: 180,
+                    origin: { y: 0.6 },
+                    colors: ['#FF6B9D', '#FFB6C1', '#E8B4B8', '#D4AF37', '#FF1493']
+                });
+            }, 500);
+        }
+
+        // Close winner display
+        closeWinnerBtn.addEventListener('click', () => {
+            winnerDisplay.classList.remove('active');
+        });
+
+        // Draw again
+        drawAgainBtn.addEventListener('click', () => {
+            winnerDisplay.classList.remove('active');
+            setTimeout(() => {
+                drawBtn.click();
+            }, 300);
+        });
+
+        // Initialize
+        createParticles();
+        loadData();
+        updateStats();
+
+        // Show welcome toast only if user never configured
+        const hasConfigured = localStorage.getItem('hasConfigured');
+        if (!hasConfigured) {
+            setTimeout(() => {
+                showToast('👋 Clique no ícone ⚙️ para configurar sua rifa!', 8000);
+            }, 1000);
+        }
+
+        console.log('🎲 Sistema de Sorteio carregado com sucesso!');
+    </script>
+</body>
+
+</html>
